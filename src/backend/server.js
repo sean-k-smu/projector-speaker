@@ -9,7 +9,8 @@ const cors = require('cors');
 const path = require("path");
 const fs = require('fs');
 const multer = require("multer");
-const siteHost = require("../constants.js")
+require('dotenv').config();
+const siteHost = process.env.SITE_ORIGIN;
 
 // ----------------- SETUP -----------------
 //Ensures server will act properly
@@ -147,8 +148,10 @@ server.use("/api/pending", express.static(path.join(directory, "gallery_uploads/
 
 
 //Starts the server - while on SSH access using http://ugdev.cs-smu.ca:3100/api
-server.listen(3100, '0.0.0.0', () => {
-    console.log("Server running on port 3100");
+const PORT = process.env.PORT || 3100;
+
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
 }).on('error', (err) => {
     console.error("SERVER LISTEN ERROR:", err);
 });
