@@ -3,3 +3,11 @@ build/
 .env
 .env.*
 .DS_Store
+!.env.example
+# Ignore uploaded gallery images
+src/backend/gallery_uploads/pending/*
+src/backend/gallery_uploads/accepted/*
+
+# Keep the upload directories in Git
+!src/backend/gallery_uploads/pending/.gitkeep
+!src/backend/gallery_uploads/accepted/.gitkeep
