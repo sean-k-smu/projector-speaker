@@ -21,6 +21,63 @@ server.use(express.json());
 const directory = path.resolve();
 
 
+
+/**
+ * Get description for an accepted image.
+ */
+server.get("/api/description/:filename", (req, res) => {
+
+    const filename = req.params.filename;
+
+    const descriptionPath = path.join(
+        directory,
+        "gallery_uploads/description",
+        `${filename}~desc.txt`
+    );
+
+    fs.readFile(descriptionPath, "utf8", (err, data) => {
+
+        if (err) {
+            return res.json({
+                description: "No description available."
+            });
+        }
+
+        res.json({
+            description: data
+        });
+    });
+});
+
+/**
+ * Get description for a pending image.
+ */
+server.get("/api/pendingDescription/:filename", (req, res) => {
+
+    const filename = req.params.filename;
+
+    const descriptionPath = path.join(
+        directory,
+        "gallery_uploads/description(pending)",
+        `${filename}~desc.txt`
+    );
+
+    fs.readFile(descriptionPath, "utf8", (err, data) => {
+
+        if (err) {
+            return res.json({
+                description: "No description available."
+            });
+        }
+
+        res.json({
+            description: data
+        });
+
+    });
+});
+
+
 /**
  * Multer storage configuration for pending image uploads.
  * 
@@ -75,6 +132,46 @@ server.get("/api/pendingImages", (req, res) => {
     });
 });
 
+
+/**
+ * Update the description of an accepted image.
+ *
+ * Expects:
+ * {
+ *   filename: "image.jpg",
+ *   description: "new description"
+ * }
+ */
+server.post("/api/updateDescription", (req, res) => {
+
+    const { filename, description } = req.body;
+
+    const descriptionPath = path.join(
+        directory,
+        "gallery_uploads/description",
+        `${filename}~desc.txt`
+    );
+
+    fs.writeFile(descriptionPath, description, (err) => {
+
+        if (err) {
+            console.log("DESCRIPTION UPDATE FAILED:");
+            console.log(err);
+
+            return res.status(500).json({
+                error: "Failed to update description"
+            });
+        }
+
+        console.log(`Description updated for ${filename}`);
+
+        res.json({
+            success: true,
+            filename,
+            description
+        });
+    });
+});
 
 /**
  * Accept a pending image (move to accepted folder).
