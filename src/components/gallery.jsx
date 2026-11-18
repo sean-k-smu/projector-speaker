@@ -10,18 +10,26 @@ import { useDropzone } from 'react-dropzone';
 import { serverHost } from '../constants';
 import tts from "../assets/tts";
 import { IoVolumeHigh } from 'react-icons/io5';
+import { useNavigate } from 'react-router-dom';
 
 const Gallery = () => {
 
   //Variables
   //Modal pannel
+  const [description, setDescription] = useState('no description');
   const [selectedItem, setSelectedItem] = useState(null);
   const closeModal = () => setSelectedItem(null);
+  const closenullifyDescription = () => setDescription("no description");
   //Server Health
   const [serverUp, setServerUp] = useState(true);
   const [checkingServer, setCheckingServer] = useState(true);
   //Image array for gallery
   const [imageArray, setImageArray] = useState([]);
+
+  const [showMenu, setShowMenu] = useState(false);
+  const navigate = useNavigate();
+
+
   //Text to speech initialization
   const handleTextToSpeech = () => {
     const text = `
@@ -52,11 +60,14 @@ const Gallery = () => {
     async function checkServer() {
       //Checks to see if the server is up
       try {
+        //console.log("text");
         await axios.get(serverHost + "/api/acceptedImages", {
           timeout: 3000,
         });
         //Good to display
         setServerUp(true);
+
+       
 
         //Runs if the server is not up
       } catch (err) {
@@ -77,14 +88,21 @@ const Gallery = () => {
    */
   useEffect(() => {
     async function getImages() {
-      //Get the response.data from our axios request
-      const accepted = await axios.get(serverHost + "/api/acceptedImages")
-      setImageArray(accepted.data);
-    }
+  const accepted = await axios.get(
+    serverHost + "/api/acceptedImages"
+  );
+
+  console.log("API response:", accepted.data);
+  console.log(
+    "Is array?",
+    Array.isArray(accepted.data)
+  );
+
+  setImageArray(accepted.data);
+}
 
     getImages();
 
-    //Ensures it runs on initial render only
   }, []);
   // ----------------- GALLERY IMAGE FETCHING -----------------
 
@@ -99,20 +117,32 @@ const Gallery = () => {
     const formData = new FormData();
     acceptedFiles.forEach((file) => formData.append("image", file));
 
-    //attempt to upload
-    try {
-      const res = await axios.post(
-        `${serverHost}/api/upload`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+    navigate("/upload", {
+        state: {
+            file: acceptedFiles[0],
+            formData: formData
+        }
+    });
 
-      //ensuring it goes through
-      console.log("SERVER RESPONSE:", res.data);
-    } catch (err) {
-      console.error("Upload failed:", err);
-    }
+    
   };
+
+  const fetchDescription = async (filename) => {
+    try {
+        console.time("description fetch");
+
+        const response = await axios.get(
+            `${serverHost}/api/description/${filename}`
+        );
+
+        console.timeEnd("description fetch");
+
+        setDescription(response.data.description);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 
   /**
  * Configure react-dropzone for drag-and-drop functionality.
@@ -164,7 +194,8 @@ const Gallery = () => {
 
       {/* Drag and drop box */}
       <div data-cy="dragDropBox"
-        {...getRootProps()}
+        {...getRootProps({
+  })}
         className={`border-4 border-dashed rounded-xl p-16 mb-8 text-center cursor-pointer transition 
     ${isDragActive ? "border-blue-500 bg-blue-100 dark:bg-blue-100" : "border-gray-400 bg-gray-200 dark:bg-gray-600"} 
     hover:bg-gray-300`}
@@ -181,11 +212,13 @@ const Gallery = () => {
       <div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
+      
         {imageArray.map((filename, i) => (
           <div
             key={i}
             className="relative group overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105"
-            onClick={() => setSelectedItem(filename)}
+            onClick={async () => {await fetchDescription(filename); setSelectedItem(filename);
+}}
           >
             {/* Image */}
             <img
@@ -193,26 +226,37 @@ const Gallery = () => {
               alt={filename}
               className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
             />
+            
+            <p className="text-center text-gray-700 dark:text-yellow-100 font-calibri">
+        
+            </p>
           </div>
         ))}
       </div>
-
+      
       {/* Modal for displaying the selected item's details */}
       {selectedItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 ">
           {/* Modal container scales with image */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 relative max-w-[90vw] max-h-[90vh] overflow-auto">
             <button
               className="absolute top-2 right-2 bg-yellow-500 text-white rounded-full p-2"
-              onClick={closeModal}
+              onClick={() => {
+                closeModal();
+                closenullifyDescription();
+              }}
             >
               X
             </button>
             <img
+              style={{ marginLeft: "5%" }}
               src={`${serverHost}/api/accepted/${selectedItem}`}
               alt={selectedItem}
               className="rounded-lg mb-4 max-w-[80vw] max-h-[80vh] w-auto h-auto"
             />
+            <p className="text-center text-gray-700 dark:text-yellow-100 font-calibri">
+              {description}
+            </p>
           </div>
         </div>
       )}

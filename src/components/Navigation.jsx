@@ -81,6 +81,7 @@ const Navigation = ({ toggleDarkMode, dark }) => {
           <Link to="/naturalburial" className="py-2 dark:text-yellow-100 hover:bg-yellow-400 hover:text-black w-full text-center rounded-lg hover:rounded-xl">Natural Burial</Link> {/* Link to Natural Burial page */}
           <Link to="/ecommerce" className="py-2 dark:text-yellow-100 hover:bg-yellow-400 hover:text-black w-full text-center rounded-lg hover:rounded-xl">eCommerce</Link> {/* Link to eCommerce page */}
           <Link to="/contact" className="py-2 dark:text-yellow-100 hover:bg-yellow-400 hover:text-black w-full text-center rounded-lg hover:rounded-xl">Contact</Link> {/* Link to Contact page */}
+          
         </nav>
       </div>
     </div>
