@@ -24,6 +24,8 @@ import Ecommerce from "./components/Ecommerce";
 import Checkout from './components/Checkout';
 import Contact from './components/Contact';
 import Admin from './components/Admin';
+import Upload from './components/Upload';
+import Edit from './components/Edit';
 
 /**
  * Main App component that initializes routing and manages dark mode state.
@@ -64,6 +66,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/edit" element={<Edit />} />
         </Routes>
 
       </div>
