@@ -180,50 +180,156 @@ server.post("/api/updateDescription", (req, res) => {
  * @param {Object} res - Express response object
  */
 server.post("/api/accept", (req, res) => {
+
     const { filename } = req.body;
-    const pendingPath = path.join(directory, "gallery_uploads/pending", filename);
-    const acceptedPath = path.join(directory, "gallery_uploads/accepted", filename);
+
+    const pendingPath = path.join(
+        directory,
+        "gallery_uploads/pending",
+        filename
+    );
+
+    const acceptedPath = path.join(
+        directory,
+        "gallery_uploads/accepted",
+        filename
+    );
+
+    const pendingPathDesc = path.join(
+        directory,
+        "gallery_uploads/description(pending)",
+        `${filename}~desc.txt`
+    );
+
+    const acceptedPathDesc = path.join(
+        directory,
+        "gallery_uploads/description",
+        `${filename}~desc.txt`
+    );
 
     fs.rename(pendingPath, acceptedPath, (err) => {
-        if (err) return res.status(500).json({ error: "Failed to accept image" });
-        res.json({ success: true, filename });
+
+        if (err) {
+            return res.status(500).json({
+                error: "Failed to accept image"
+            });
+        }
+
+        fs.rename(
+            pendingPathDesc,
+            acceptedPathDesc,
+            (err) => {
+
+                if (err) {
+                    console.log("DESCRIPTION MOVE FAILED:");
+                    console.log(err);
+
+                    return res.status(500).json({
+                        error:
+                            "Failed to accept image description"
+                    });
+                }
+
+                console.log(
+                    `Accepted image and description: ${filename}`
+                );
+
+                res.json({
+                    success: true,
+                    filename
+                });
+            }
+        );
     });
 });
 
 
 /**
- * Deny a pending image (delete from pending folder).
+ * Deny a pending image (delete from pending folder and description).
  * 
  * @param {Object} req - Express request object containing { filename }
  * @param {Object} res - Express response object
  */
 server.post("/api/deny", (req, res) => {
+
     const { filename } = req.body;
-    const pendingPath = path.join(directory, "gallery_uploads/pending", filename);
+
+    const pendingPath = path.join(
+        directory,
+        "gallery_uploads/pending",
+        filename
+    );
+
+    const pendingPathDesc = path.join(
+        directory,
+        "gallery_uploads/description(pending)",
+        `${filename}~desc.txt`
+    );
 
     fs.unlink(pendingPath, (err) => {
-        if (err) return res.status(500).json({ error: "Failed to deny image" });
-        res.json({ success: true, filename });
+
+        if (err) {
+            return res.status(500).json({
+                error: "Failed to deny image"
+            });
+        }
+
+        fs.unlink(pendingPathDesc, (err) => {
+
+            if (err) {
+                return res.status(500).json({
+                    error: "Failed to deny image description"
+                });
+            }
+
+            res.json({
+                success: true,
+                filename
+            });
+        });
     });
 });
 
 
-/**
- * Remove an accepted image (delete from accepted folder).
- * 
- * @param {Object} req - Express request object containing { filename }
- * @param {Object} res - Express response object
- */
 server.post("/api/remove", (req, res) => {
+
     const { filename } = req.body;
-    const acceptedPath = path.join(directory, "gallery_uploads/accepted", filename);
+
+    const acceptedPath = path.join(
+        directory,
+        "gallery_uploads/accepted",
+        filename
+    );
+
+    const acceptedPathDesc = path.join(
+        directory,
+        "gallery_uploads/description",
+        `${filename}~desc.txt`
+    );
 
     fs.unlink(acceptedPath, (err) => {
-        if (err) return res.status(500).json({ error: "Failed to remove image" });
-        res.json({ success: true, filename });
+
+        if (err) {
+            return res.status(500).json({
+                error: "Failed to remove image"
+            });
+        }
+
+        fs.unlink(acceptedPathDesc, (err) => {
+
+            if (err) {
+                return res.status(500).json({
+                    error: "Failed to remove image description"
+                });
+            }
+
+            res.json({
+                success: true,
+                filename
+            });
+        });
     });
 });
-
 
 /**
  * Upload one or more images to the pending folder.
@@ -232,8 +338,27 @@ server.post("/api/remove", (req, res) => {
  * @param {Object} res - Express response object returning uploaded filenames
  */
 server.post("/api/upload", upload.array("image"), (req, res) => {
+
+    console.log("PROMPT:", req.body.prompt);
+
     const filenames = req.files.map(f => f.filename);
-    res.json({ filenames });
+
+    const prompt = req.body.prompt;
+
+    filenames.forEach((filename) => {
+
+        const descriptionPath = path.join(
+            directory,
+            "gallery_uploads/description(pending)",
+            `${filename}~desc.txt`
+        );
+
+        fs.writeFileSync(descriptionPath, prompt);
+    });
+
+    res.json({
+        filenames
+    });
 });
 // ----------------- ENDPOINTS -----------------
 
