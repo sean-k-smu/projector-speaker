@@ -24,6 +24,8 @@ import Ecommerce from "./components/Ecommerce";
 import Checkout from './components/Checkout';
 import Contact from './components/Contact';
 import Admin from './components/Admin';
+import Upload from './components/Upload';
+import Edit from './components/Edit';
 import TalkingTrees from './components/talkingTrees/TalkingTrees';
 import TalkingTreePage from './components/talkingTrees/TalkingTreePage';
 
@@ -66,6 +68,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/edit" element={<Edit />} />
 	  <Route path="/talking-trees" element={<TalkingTrees />} />
 	  <Route path="/talking-trees/:treeId" element={<TalkingTreePage />} />
         </Routes>

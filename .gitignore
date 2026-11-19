@@ -11,3 +11,5 @@ src/backend/gallery_uploads/accepted/*
 # Keep the upload directories in Git
 !src/backend/gallery_uploads/pending/.gitkeep
 !src/backend/gallery_uploads/accepted/.gitkeep
+src/backend/gallery_uploads/description(pending)/*
+!src/backend/gallery_uploads/description(pending)/.gitkeep

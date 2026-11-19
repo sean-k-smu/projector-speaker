@@ -5,6 +5,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { serverHost } from "../constants"
+import { useNavigate } from 'react-router-dom';
+
+
 
 const Admin = () => {
 
@@ -15,6 +18,9 @@ const Admin = () => {
     //For modal display
     const [selectedItem, setSelectedItem] = useState(null);
     const closeModal = () => setSelectedItem(null);
+    const [description, setDescription] = useState('no description');
+    const navigate = useNavigate();
+
 
 
     // ----------------- POPULATING IMAGE ARRAYS -----------------
@@ -35,6 +41,35 @@ const Admin = () => {
         getImages();
 
     }, []);
+
+    const fetchPendingDescription = async (filename) => {
+    try {
+        const response = await axios.get(
+            `${serverHost}/api/pendingDescription/${filename}`
+        );
+
+        setDescription(response.data.description);
+
+    } catch (err) {
+        console.error(err);
+        setDescription("No description available.");
+    }
+};
+
+const fetchDescription = async (filename) => {
+    try {
+        const response = await axios.get(
+            `${serverHost}/api/description/${filename}`
+        );
+
+        setDescription(response.data.description);
+
+    } catch (err) {
+        console.error(err);
+        setDescription("No description available.");
+    }
+};
+
     // ----------------- POPULATING IMAGE ARRAYS -----------------
 
     // ----------------- ACCEPT PENDING -----------------
@@ -132,10 +167,15 @@ const Admin = () => {
                     >
                         {/* Image */}
                         <img
-                            src={`http://ugdev.cs-smu.ca:3100/api/pending/${filename}`}
+                            src={`${serverHost}/api/pending/${filename}`}
                             alt={filename}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-                            onClick={() => setSelectedItem(filename)}
+                            onClick={async () => 
+                            {
+                                setSelectedItem(filename);
+                                await fetchPendingDescription(`${filename}`);
+                            }
+                            }
                         />
                     </div>
 
@@ -162,10 +202,15 @@ const Admin = () => {
                     >
                         {/* Image */}
                         <img
-                            src={`http://ugdev.cs-smu.ca:3100/api/accepted/${filename}`}
+                            src={`${serverHost}/api/accepted/${filename}`}
                             alt={filename}
                             className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-                            onClick={() => setSelectedItem(filename)}
+                            onClick={async () => {
+                                
+                                setSelectedItem(filename);
+                                await fetchDescription(`${filename}`);
+                            
+                            }}
                         />
                     </div>
                 ))}
@@ -192,6 +237,10 @@ const Admin = () => {
                             alt={selectedItem}
                             className="w-auto h-auto object-fill rounded-lg mb-4"
                         />
+
+                        <p className="text-center text-gray-700 dark:text-yellow-100 font-calibri">
+                            {description}
+                        </p>
 
                         {/* Buttons */}
                         <div className="flex justify-center gap-4">
@@ -222,6 +271,18 @@ const Admin = () => {
                                     }}
                                 >
                                     Remove
+                                </button>
+                            )}
+
+                             {approvedArray.includes(selectedItem) && (
+                                <button
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-lg font-calibri"
+                                    onClick={() => {
+                                        navigate('/edit', {state: {filename: selectedItem,description}});
+
+                                    }}
+                                >
+                                    Edit
                                 </button>
                             )}
                         </div>
