@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import axios from 'axios';
 import { serverHost } from '../constants';
 
@@ -10,12 +10,13 @@ export default function Upload() {
     const [prompt, setPrompt] = useState("");
 
     const handleSubmit = async () => {
-        console.log(prompt + " : " + file.name);
-        formData.append("prompt", prompt);
+    // Build the upload here: the photo plus its description.
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("prompt", prompt);
+
     //attempt to upload
     try {
-      
-      //const  prompts = prompt("Please enter a prompt for the image(s) you are uploading (optional):");
       const res = await axios.post(
         `${serverHost}/api/upload`,
         formData,
@@ -23,7 +24,6 @@ export default function Upload() {
       );
 
       //ensuring it goes through
-      console.log("SERVER RESPONSE:", res.data);
 
       // Optionally, you can navigate to another page or show a success message here
 
@@ -38,17 +38,19 @@ export default function Upload() {
     const location = useLocation();
 
     const file = location.state?.file;
-    const formData = location.state?.formData;
+
+    // Opened directly or refreshed: there's no photo to upload, so go back to the Gallery.
+    if (!file) return <Navigate to="/gallery" replace />;
 
 if (uploadSuccess) {
     return (
         <main className="min-h-screen flex justify-center items-center">
             <div className="text-center">
-                <h1 className="text-4xl font-bold text-green-600">
+                <h1 className="text-4xl text-gray-900 dark:text-yellow-100">
                     Upload Successful!
                 </h1>
 
-                <p className="mt-4">
+                <p className="mt-4 text-xl text-gray-900 dark:text-yellow-100">
                     Your image has been submitted for administrative review.
                 </p>
             </div>

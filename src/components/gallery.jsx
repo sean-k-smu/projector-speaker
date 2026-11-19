@@ -60,7 +60,6 @@ const Gallery = () => {
     async function checkServer() {
       //Checks to see if the server is up
       try {
-        //console.log("text");
         await axios.get(serverHost + "/api/acceptedImages", {
           timeout: 3000,
         });
@@ -92,12 +91,6 @@ const Gallery = () => {
     serverHost + "/api/acceptedImages"
   );
 
-  console.log("API response:", accepted.data);
-  console.log(
-    "Is array?",
-    Array.isArray(accepted.data)
-  );
-
   setImageArray(accepted.data);
 }
 
@@ -112,34 +105,23 @@ const Gallery = () => {
  * 
  * @param {File[]} acceptedFiles - Array of image files selected by the user
  */
-  const onDrop = async (acceptedFiles) => {
-    //creating the data to send
-    const formData = new FormData();
-    acceptedFiles.forEach((file) => formData.append("image", file));
-
-    navigate("/upload", {
-        state: {
-            file: acceptedFiles[0],
-            formData: formData
-        }
-    });
-
-    
+  const onDrop = (acceptedFiles) => {
+    // The Upload page shows a preview, collects the description and sends both.
+    // Only the File is passed: a File survives page navigation, a FormData doesn't.
+    if (acceptedFiles.length === 0) return;
+    navigate("/upload", { state: { file: acceptedFiles[0] } });
   };
 
   const fetchDescription = async (filename) => {
     try {
-        console.time("description fetch");
-
         const response = await axios.get(
             `${serverHost}/api/description/${filename}`
         );
 
-        console.timeEnd("description fetch");
-
         setDescription(response.data.description);
     } catch (err) {
         console.error(err);
+        setDescription("No description available.");
     }
 }
 
@@ -151,6 +133,8 @@ const Gallery = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
+    // One photo at a time, so each photo gets its own description.
+    multiple: false,
   });
   // ----------------- PICTURE UPLOADING -----------------
 
@@ -226,10 +210,6 @@ const Gallery = () => {
               alt={filename}
               className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
             />
-            
-            <p className="text-center text-gray-700 dark:text-yellow-100 font-calibri">
-        
-            </p>
           </div>
         ))}
       </div>

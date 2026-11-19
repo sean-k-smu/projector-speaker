@@ -5,7 +5,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { serverHost } from "../constants"
-import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -23,7 +22,6 @@ const Admin = () => {
     const navigate = useNavigate();
 
 
-    console.log("Host: " + serverHost);
 
     // ----------------- POPULATING IMAGE ARRAYS -----------------
 /**
@@ -278,7 +276,7 @@ const fetchDescription = async (filename) => {
 
                              {approvedArray.includes(selectedItem) && (
                                 <button
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-calibri"
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-lg font-calibri"
                                     onClick={() => {
                                         navigate('/edit', {state: {filename: selectedItem,description}});
 

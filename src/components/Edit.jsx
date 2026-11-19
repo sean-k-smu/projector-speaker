@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import axios from 'axios';
 import { serverHost } from '../constants';
 
@@ -14,12 +14,12 @@ const description = location.state?.description;
 
 const [prompt, setPrompt] = useState(description || "");
 
+// Opened directly or refreshed: there's no photo to edit, so go back to the Admin page.
+if (!filename) return <Navigate to="/admin" replace />;
+
     const handleSubmit = async () => {
-        console.log(prompt + " : " + filename);
-    //attempt to upload
+    //attempt to save the new description
     try {
-      
-      //const  prompts = prompt("Please enter a prompt for the image(s) you are uploading (optional):");
     const res = await axios.post(
     `${serverHost}/api/updateDescription`,
     {
@@ -27,8 +27,6 @@ const [prompt, setPrompt] = useState(description || "");
         description: prompt
     }
 );
-
-console.log("SERVER RESPONSE:", res.data);
 
       // Optionally, you can navigate to another page or show a success message here
 
@@ -47,12 +45,12 @@ if (uploadSuccess) {
     return (
         <main className="min-h-screen flex justify-center items-center">
             <div className="text-center">
-                <h1 className="text-4xl font-bold text-green-600">
+                <h1 className="text-4xl text-gray-900 dark:text-yellow-100">
                     Description Updated!
                 </h1>
 
-                <p className="mt-4">
-                    The description for <strong>{filename}</strong> was successfully saved.
+                <p className="mt-4 text-xl text-gray-900 dark:text-yellow-100">
+                    The description for {filename} was successfully saved.
                 </p>
             </div>
         </main>

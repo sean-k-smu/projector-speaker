@@ -20,6 +20,24 @@ server.use(express.json());
 //Setting up directory
 const directory = path.resolve();
 
+/**
+ * Keeps only the file name from a name sent by the browser, so a request
+ * can't reach files outside the gallery folders (e.g. "../../.env").
+ *
+ * @param {string} filename - The name sent in the request.
+ * @returns {string} The bare file name, or "" if none was sent.
+ */
+const safeName = (filename) => path.basename(String(filename || ""));
+
+/**
+ * Description files are optional (photos uploaded before descriptions existed
+ * don't have one), so "file not found" is not treated as an error.
+ *
+ * @param {Error|null} err - The error from fs.rename or fs.unlink.
+ * @returns {boolean} True only for errors other than "file not found".
+ */
+const descriptionErrorIsReal = (err) => Boolean(err) && err.code !== "ENOENT";
+
 
 
 /**
@@ -27,7 +45,7 @@ const directory = path.resolve();
  */
 server.get("/api/description/:filename", (req, res) => {
 
-    const filename = req.params.filename;
+    const filename = safeName(req.params.filename);
 
     const descriptionPath = path.join(
         directory,
@@ -54,7 +72,7 @@ server.get("/api/description/:filename", (req, res) => {
  */
 server.get("/api/pendingDescription/:filename", (req, res) => {
 
-    const filename = req.params.filename;
+    const filename = safeName(req.params.filename);
 
     const descriptionPath = path.join(
         directory,
@@ -144,7 +162,17 @@ server.get("/api/pendingImages", (req, res) => {
  */
 server.post("/api/updateDescription", (req, res) => {
 
-    const { filename, description } = req.body;
+    const filename = safeName(req.body.filename);
+    const description = req.body.description ?? "";
+
+    if (!filename) {
+        return res.status(400).json({ error: "No image was given" });
+    }
+
+    // Only save descriptions for photos that are actually in the gallery.
+    if (!fs.existsSync(path.join(directory, "gallery_uploads/accepted", filename))) {
+        return res.status(404).json({ error: "Image not found" });
+    }
 
     const descriptionPath = path.join(
         directory,
@@ -181,7 +209,11 @@ server.post("/api/updateDescription", (req, res) => {
  */
 server.post("/api/accept", (req, res) => {
 
-    const { filename } = req.body;
+    const filename = safeName(req.body.filename);
+
+    if (!filename) {
+        return res.status(400).json({ error: "No image was given" });
+    }
 
     const pendingPath = path.join(
         directory,
@@ -220,7 +252,7 @@ server.post("/api/accept", (req, res) => {
             acceptedPathDesc,
             (err) => {
 
-                if (err) {
+                if (descriptionErrorIsReal(err)) {
                     console.log("DESCRIPTION MOVE FAILED:");
                     console.log(err);
 
@@ -252,7 +284,11 @@ server.post("/api/accept", (req, res) => {
  */
 server.post("/api/deny", (req, res) => {
 
-    const { filename } = req.body;
+    const filename = safeName(req.body.filename);
+
+    if (!filename) {
+        return res.status(400).json({ error: "No image was given" });
+    }
 
     const pendingPath = path.join(
         directory,
@@ -276,7 +312,7 @@ server.post("/api/deny", (req, res) => {
 
         fs.unlink(pendingPathDesc, (err) => {
 
-            if (err) {
+            if (descriptionErrorIsReal(err)) {
                 return res.status(500).json({
                     error: "Failed to deny image description"
                 });
@@ -293,7 +329,11 @@ server.post("/api/deny", (req, res) => {
 
 server.post("/api/remove", (req, res) => {
 
-    const { filename } = req.body;
+    const filename = safeName(req.body.filename);
+
+    if (!filename) {
+        return res.status(400).json({ error: "No image was given" });
+    }
 
     const acceptedPath = path.join(
         directory,
@@ -317,7 +357,7 @@ server.post("/api/remove", (req, res) => {
 
         fs.unlink(acceptedPathDesc, (err) => {
 
-            if (err) {
+            if (descriptionErrorIsReal(err)) {
                 return res.status(500).json({
                     error: "Failed to remove image description"
                 });
@@ -339,11 +379,10 @@ server.post("/api/remove", (req, res) => {
  */
 server.post("/api/upload", upload.array("image"), (req, res) => {
 
-    console.log("PROMPT:", req.body.prompt);
-
     const filenames = req.files.map(f => f.filename);
 
-    const prompt = req.body.prompt;
+    // An upload without a description gets an empty description file.
+    const prompt = req.body.prompt || "";
 
     filenames.forEach((filename) => {
 
