@@ -13,7 +13,7 @@
 
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navigation from './components/Navigation';
+//import Navigation from './components/Navigation';
 import Homepage from './components/Homepage';
 import About from './components/About';
 import SiteMap from './components/Sitemap';
@@ -28,6 +28,7 @@ import Upload from './components/Upload';
 import Edit from './components/Edit';
 import TalkingTrees from './components/talkingTrees/TalkingTrees';
 import TalkingTreePage from './components/talkingTrees/TalkingTreePage';
+import Layout from './components/Layout';
 
 /**
  * Main App component that initializes routing and manages dark mode state.
@@ -50,13 +51,7 @@ function App() {
 
   return (
     <Router>
-      {/* Background wrapper that updates color based on dark mode */}
-      <div className="bg-yellow-100 dark:bg-blue-900 min-h-screen">
-        
-        {/* Navigation bar, receives dark mode props */}
-        <Navigation toggleDarkMode={darkModeHandler} dark={dark} />
-
-        {/* Route configuration */}
+      <Layout dark={dark} toggleDarkMode={darkModeHandler}>
         <Routes>
           <Route path="/" element={<Homepage dark={dark} />} />
           <Route path="/about" element={<About />} />
@@ -73,8 +68,7 @@ function App() {
 	  <Route path="/talking-trees" element={<TalkingTrees />} />
 	  <Route path="/talking-trees/:treeId" element={<TalkingTreePage />} />
         </Routes>
-
-      </div>
+       </Layout>
     </Router>
   );
 }
